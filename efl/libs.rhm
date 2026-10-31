@@ -1,0 +1,19 @@
+#lang rhombus/static
+
+import:
+  ffi open
+
+export:
+  eina
+  eo
+  efl
+  ecore
+  evas
+  elementary
+
+def eina = Lib.load("libeina", ["1", #false])
+def eo = Lib.load("libeo", ["1", #false])
+def efl = Lib.load("libefl", ["1", #false])
+def ecore = Lib.load("libecore", ["1", #false])
+def evas = Lib.load("libevas", ["1", #false])
+def elementary = Lib.load("libelementary", ["1", #false])

@@ -1,0 +1,124 @@
+#lang rhombus/static
+
+import:
+  ffi open
+  "libs.rhm" as libs
+  "eina.rhm" as eina
+  "eo.rhm" as eo
+
+export:
+  Eina_Position2D
+  Eina_Size2D
+  Eina_Rectangle
+  Eina_Rect
+  eina_rect
+  efl_part
+  efl_gfx_entity_position_set
+  efl_gfx_entity_position_get
+  efl_gfx_entity_size_set
+  efl_gfx_entity_size_get
+  efl_gfx_entity_geometry_set
+  efl_gfx_entity_geometry_get
+  efl_gfx_entity_visible_set
+  efl_gfx_entity_visible_get
+  efl_gfx_entity_scale_set
+  efl_gfx_entity_scale_get
+  efl_gfx_color_set
+  efl_gfx_color_get
+  efl_gfx_color_code_set
+  efl_gfx_color_code_get
+  efl_text_set
+  efl_text_get
+  efl_text_markup_set
+  efl_text_markup_get
+  efl_content_set
+  efl_content_get
+  efl_content_unset
+  efl_content_count
+  efl_pack
+  efl_pack_begin
+  efl_pack_end
+  efl_pack_at
+  efl_pack_content_get
+  efl_pack_unpack
+  efl_pack_unpack_at
+  efl_pack_clear
+  efl_file_set
+  efl_file_get
+  efl_file_key_set
+  efl_file_key_get
+  efl_file_load
+  efl_file_unload
+  efl_file_loaded_get
+
+foreign.struct Eina_Position2D(x :: int_t, y :: int_t)
+foreign.struct Eina_Size2D(w :: int_t, h :: int_t)
+foreign.struct Eina_Rectangle(x :: int_t, y :: int_t, w :: int_t, h :: int_t)
+
+foreign.union Eina_Rect(
+  rect :: Eina_Rectangle,
+  pos_size :: struct (
+    pos :: Eina_Position2D,
+    size :: Eina_Size2D
+  ),
+  xywh :: struct (
+    x :: int_t,
+    y :: int_t,
+    w :: int_t,
+    h :: int_t
+  )
+)
+
+fun eina_rect(x, y, w, h) :: Eina_Rect:
+  new Eina_Rect(rect: new Eina_Rectangle(x, y, w, h))
+
+foreign.linker efl:
+  ~lib: libs.efl
+
+efl.fun efl_part(eo.Efl_Object*, string_t) :: eo.Efl_Object*
+efl.fun efl_gfx_entity_position_set(eo.Efl_Object*, Eina_Position2D) :: void_t
+efl.fun efl_gfx_entity_position_get(eo.Efl_Object*) :: Eina_Position2D
+efl.fun efl_gfx_entity_size_set(eo.Efl_Object*, Eina_Size2D) :: void_t
+efl.fun efl_gfx_entity_size_get(eo.Efl_Object*) :: Eina_Size2D
+efl.fun efl_gfx_entity_geometry_set(eo.Efl_Object*, Eina_Rect) :: void_t
+efl.fun efl_gfx_entity_geometry_get(eo.Efl_Object*) :: Eina_Rect
+efl.fun efl_gfx_entity_visible_set(eo.Efl_Object*, eina.eina_bool_t) :: void_t
+efl.fun efl_gfx_entity_visible_get(eo.Efl_Object*) :: eina.eina_bool_t
+efl.fun efl_gfx_entity_scale_set(eo.Efl_Object*, double_t) :: void_t
+efl.fun efl_gfx_entity_scale_get(eo.Efl_Object*) :: double_t
+efl.fun efl_gfx_color_set(eo.Efl_Object*, int_t, int_t, int_t, int_t) :: void_t
+
+efl.fun efl_gfx_color_get(
+  eo.Efl_Object*,
+  r :: int_t* = new int_t,
+  g :: int_t* = new int_t,
+  b :: int_t* = new int_t,
+  a :: int_t* = new int_t
+) :: void_t :: List.of(Int):
+  [r[0], g[0], b[0], a[0]]
+
+efl.fun efl_gfx_color_code_set(eo.Efl_Object*, string_t) :: void_t
+efl.fun efl_gfx_color_code_get(eo.Efl_Object*) :: string_t
+efl.fun efl_text_set(eo.Efl_Object*, string_t) :: void_t
+efl.fun efl_text_get(eo.Efl_Object*) :: string_t
+efl.fun efl_text_markup_set(eo.Efl_Object*, string_t) :: void_t
+efl.fun efl_text_markup_get(eo.Efl_Object*) :: string_t
+efl.fun efl_content_set(eo.Efl_Object*, eo.Efl_Object*) :: eina.eina_bool_t
+efl.fun efl_content_get(eo.Efl_Object*) :: eo.Efl_Object*
+efl.fun efl_content_unset(eo.Efl_Object*) :: eo.Efl_Object*
+efl.fun efl_content_count(eo.Efl_Object*) :: uint_t
+efl.fun efl_pack(eo.Efl_Object*, eo.Efl_Object*) :: eina.eina_bool_t
+efl.fun efl_pack_begin(eo.Efl_Object*, eo.Efl_Object*) :: eina.eina_bool_t
+efl.fun efl_pack_end(eo.Efl_Object*, eo.Efl_Object*) :: eina.eina_bool_t
+efl.fun efl_pack_at(eo.Efl_Object*, eo.Efl_Object*, int_t) :: eina.eina_bool_t
+efl.fun efl_pack_content_get(eo.Efl_Object*, int_t) :: eo.Efl_Object*
+efl.fun efl_pack_unpack(eo.Efl_Object*, eo.Efl_Object*) :: eina.eina_bool_t
+efl.fun efl_pack_unpack_at(eo.Efl_Object*, int_t) :: eo.Efl_Object*
+efl.fun efl_pack_clear(eo.Efl_Object*) :: eina.eina_bool_t
+efl.fun efl_file_set(eo.Efl_Object*, string_t) :: int_t
+efl.fun efl_file_get(eo.Efl_Object*) :: string_t
+efl.fun efl_file_key_set(eo.Efl_Object*, string_t) :: void_t
+efl.fun efl_file_key_get(eo.Efl_Object*) :: string_t
+efl.fun efl_file_load(eo.Efl_Object*) :: int_t
+efl.fun efl_file_unload(eo.Efl_Object*) :: void_t
+efl.fun efl_file_loaded_get(eo.Efl_Object*) :: eina.eina_bool_t

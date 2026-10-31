@@ -1,0 +1,47 @@
+#lang rhombus/static
+
+import:
+  ffi open
+  "libs.rhm" as libs
+  "eina.rhm" as eina
+  "eo.rhm" as eo
+
+export:
+  ecore_init
+  ecore_shutdown
+  efl_main_loop_get
+  efl_app_main_get
+  efl_loop_iterate
+  efl_loop_iterate_may_block
+  efl_loop_begin
+  efl_loop_time_get
+  efl_loop_throttle_set
+  efl_loop_throttle_get
+  efl_loop_timer_interval_set
+  efl_loop_timer_interval_get
+  efl_exit
+
+foreign.linker ecore:
+  ~lib: libs.ecore
+
+ecore.fun ecore_init() :: int_t
+ecore.fun ecore_shutdown() :: int_t
+ecore.fun efl_main_loop_get() :: eo.Efl_Object*
+ecore.fun efl_app_main_get() :: eo.Efl_Object*
+ecore.fun efl_loop_iterate(eo.Efl_Object*) :: void_t
+ecore.fun efl_loop_iterate_may_block(eo.Efl_Object*, int_t) :: int_t
+
+ecore.fun efl_loop_begin_raw(eo.Efl_Object*) :: ptr_t:
+  ~c_id: efl_loop_begin
+
+ecore.fun efl_loop_exit_code_process(ptr_t) :: int_t
+
+fun efl_loop_begin() :: Int:
+  efl_loop_exit_code_process(efl_loop_begin_raw(efl_main_loop_get()))
+
+ecore.fun efl_loop_time_get(eo.Efl_Object*) :: double_t
+ecore.fun efl_loop_throttle_set(eo.Efl_Object*, double_t) :: void_t
+ecore.fun efl_loop_throttle_get(eo.Efl_Object*) :: double_t
+ecore.fun efl_loop_timer_interval_set(eo.Efl_Object*, double_t) :: void_t
+ecore.fun efl_loop_timer_interval_get(eo.Efl_Object*) :: double_t
+ecore.fun efl_exit(int_t) :: void_t

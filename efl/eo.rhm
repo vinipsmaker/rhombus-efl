@@ -1,0 +1,210 @@
+#lang rhombus/static
+
+import:
+  ffi open
+  lib("ffi/unsafe.rkt") as rkt_ffi:
+    expose:
+      _cprocedure
+      _pointer
+      _void
+      cast as rkt_cast
+  "libs.rhm" as libs
+  "eina.rhm" as eina
+
+export:
+  Efl_Object
+  Efl_Class
+  Efl_Event_Description
+  Efl_Event
+  EventHandler
+  efl_object_init
+  efl_object_shutdown
+  efl_add
+  efl_add_ref
+  efl_new
+  efl_del
+  efl_ref
+  efl_unref
+  efl_ref_count
+  efl_parent_set
+  efl_parent_get
+  efl_name_set
+  efl_name_get
+  efl_comment_set
+  efl_comment_get
+  efl_debug_name_get
+  efl_class_get
+  efl_class_name_get
+  efl_class_lookup
+  efl_isa
+  efl_finalized_get
+  efl_invalidated_get
+  efl_provider_find
+  efl_children_iterator_new
+  efl_children
+  efl_event_lookup
+  efl_event_callback_priority_add
+  efl_event_callback_del
+  efl_event_callback_call
+  efl_event_callback_stop
+  efl_event_callback_count
+  efl_event_freeze
+  efl_event_thaw
+  efl_event_global_freeze
+  efl_event_global_thaw
+  on_event
+  off_event
+
+foreign.type Efl_Object
+foreign.type Efl_Class
+
+foreign.struct Efl_Event_Description(
+  name :: string_t,
+  unfreezable :: eina.eina_bool_t,
+  legacy_is :: eina.eina_bool_t,
+  restart :: eina.eina_bool_t
+)
+
+foreign.struct Efl_Event(
+  object :: Efl_Object*,
+  desc :: Efl_Event_Description*,
+  info :: ptr_t
+)
+
+foreign.linker eo:
+  ~lib: libs.eo
+
+eo.fun efl_object_init() :: eina.eina_bool_t
+eo.fun efl_object_shutdown() :: eina.eina_bool_t
+
+eo.fun _efl_add_internal_start(
+  string_t,
+  int_t,
+  Efl_Class*,
+  ptr_t,
+  eina.eina_bool_t,
+  eina.eina_bool_t
+) :: Efl_Object*
+
+eo.fun _efl_add_end(
+  Efl_Object*,
+  eina.eina_bool_t,
+  eina.eina_bool_t
+) :: Efl_Object*
+
+fun add_internal(klass :: Efl_Class, parent :: maybe(Efl_Object), ref, initialize):
+  def parent_pointer = if parent | parent | uintptr_to_ptr(0)
+  def object = _efl_add_internal_start("rhombus", 0, klass, parent_pointer, ref, #true)
+  when initialize
+  | initialize(object)
+  _efl_add_end(object, ref, #true)
+
+fun efl_add(klass :: Efl_Class, parent :: Efl_Object, ~initialize: initialize = #false):
+  add_internal(klass, parent, #false, initialize)
+
+fun efl_add_ref(
+  klass :: Efl_Class,
+  parent :: maybe(Efl_Object),
+  ~initialize: initialize = #false
+):
+  add_internal(klass, parent, #true, initialize)
+
+fun efl_new(klass :: Efl_Class, ~initialize: initialize = #false):
+  add_internal(klass, #false, #true, initialize)
+
+eo.fun efl_del(Efl_Object*) :: void_t
+eo.fun efl_ref(Efl_Object*) :: Efl_Object*
+eo.fun efl_unref(Efl_Object*) :: void_t
+eo.fun efl_ref_count(Efl_Object*) :: int_t
+eo.fun efl_parent_set_raw(Efl_Object*, ptr_t) :: void_t:
+  ~c_id: efl_parent_set
+eo.fun efl_parent_get(Efl_Object*) :: Efl_Object*
+
+fun efl_parent_set(object :: Efl_Object, parent :: maybe(Efl_Object)):
+  efl_parent_set_raw(object, if parent | parent | uintptr_to_ptr(0))
+eo.fun efl_name_set(Efl_Object*, string_t) :: void_t
+eo.fun efl_name_get(Efl_Object*) :: string_t
+eo.fun efl_comment_set(Efl_Object*, string_t) :: void_t
+eo.fun efl_comment_get(Efl_Object*) :: string_t
+eo.fun efl_debug_name_get(Efl_Object*) :: string_t
+eo.fun efl_class_get(Efl_Object*) :: Efl_Class*
+eo.fun efl_class_name_get(Efl_Class*) :: string_t
+eo.fun efl_isa(Efl_Object*, Efl_Class*) :: eina.eina_bool_t
+eo.fun efl_finalized_get(Efl_Object*) :: eina.eina_bool_t
+eo.fun efl_invalidated_get(Efl_Object*) :: eina.eina_bool_t
+eo.fun efl_provider_find(Efl_Object*, Efl_Class*) :: Efl_Object*
+eo.fun efl_children_iterator_new(Efl_Object*) :: eina.Eina_Iterator*
+
+fun efl_class_lookup(library :: Lib, getter_name :: String) :: Efl_Class:
+  def getter = cast (() -> Efl_Class*) library.find(getter_name)
+  getter()
+
+fun efl_event_lookup(library :: Lib, symbol_name :: String) :: Efl_Event_Description:
+  cast (Efl_Event_Description*) library.find(symbol_name)
+
+fun efl_children(object :: Efl_Object):
+  List.map(
+    eina.eina_iterator_to_list(efl_children_iterator_new(object)),
+    fun (item): cast (Efl_Object*) item
+  )
+
+eo.fun efl_event_callback_priority_add(
+  Efl_Object*,
+  Efl_Event_Description*,
+  int16_t,
+  ptr_t,
+  ptr_t = uintptr_to_ptr(0)
+) :: eina.eina_bool_t
+
+eo.fun efl_event_callback_del(
+  Efl_Object*,
+  Efl_Event_Description*,
+  ptr_t,
+  ptr_t = uintptr_to_ptr(0)
+) :: eina.eina_bool_t
+
+eo.fun efl_event_callback_call(
+  Efl_Object*,
+  Efl_Event_Description*,
+  ptr_t
+) :: eina.eina_bool_t
+
+eo.fun efl_event_callback_stop(Efl_Object*) :: void_t
+eo.fun efl_event_callback_count(Efl_Object*, Efl_Event_Description*) :: uint_t
+eo.fun efl_event_freeze(Efl_Object*) :: void_t
+eo.fun efl_event_thaw(Efl_Object*) :: void_t
+eo.fun efl_event_global_freeze() :: void_t
+eo.fun efl_event_global_thaw() :: void_t
+
+class EventHandler(object, description, callback_pointer, callback)
+
+def mutable event_handlers = []
+
+def event_callback_type:
+  rkt_ffi._cprocedure(PairList[rkt_ffi._pointer, rkt_ffi._pointer], rkt_ffi._void)
+
+fun on_event(
+  object :: Efl_Object,
+  description :: Efl_Event_Description,
+  callback,
+  ~priority: priority = 0
+):
+  def c_callback = fun (_data, event): callback(event)
+  // ffi2 1.1 cannot convert a void callback result.
+  def callback_pointer:
+    cpointer_to_ptr(rkt_ffi.rkt_cast(c_callback, event_callback_type, rkt_ffi._pointer))
+  def handler = EventHandler(object, description, callback_pointer, c_callback)
+  unless efl_event_callback_priority_add(
+    object, description, priority, callback_pointer
+  )
+  | error("could not register Eo event callback")
+  event_handlers := [handler, & event_handlers]
+  handler
+
+fun off_event(handler :: EventHandler):
+  def removed = efl_event_callback_del(
+    handler.object, handler.description, handler.callback_pointer
+  )
+  when removed
+  | event_handlers := List.filter(event_handlers, ~keep: fun (other): if other === handler | #false | #true)
+  removed

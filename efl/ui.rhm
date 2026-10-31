@@ -1,0 +1,25 @@
+#lang rhombus/static
+
+import:
+  ffi open
+  "libs.rhm" as libs
+  "eina.rhm" as eina
+  "eo.rhm" as eo
+
+export:
+  elm_init
+  elm_shutdown
+  efl_ui_win_autodel_set
+  efl_ui_win_autodel_get
+
+foreign.linker elementary:
+  ~lib: libs.elementary
+
+elementary.fun elm_init(
+  int_t = 0,
+  ptr_t = uintptr_to_ptr(0)
+) :: int_t
+
+elementary.fun elm_shutdown() :: int_t
+elementary.fun efl_ui_win_autodel_set(eo.Efl_Object*, eina.eina_bool_t) :: void_t
+elementary.fun efl_ui_win_autodel_get(eo.Efl_Object*) :: eina.eina_bool_t

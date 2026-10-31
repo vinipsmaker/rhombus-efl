@@ -1,0 +1,44 @@
+#lang rhombus/static
+
+import:
+  ffi open
+  "libs.rhm" as libs
+
+export:
+  eina_bool_t
+  Eina_Iterator
+  eina_init
+  eina_shutdown
+  eina_error_get
+  eina_error_set
+  eina_error_msg_get
+  eina_iterator_next
+  eina_iterator_free
+  eina_iterator_to_list
+
+foreign.type eina_bool_t:
+  ~extends: uint8_t
+  ~predicate: fun (value): value is_a Boolean
+  ~rhombus_to_c: fun (value): if value | 1 | 0
+  ~c_to_rhombus: fun (value): value != 0
+
+foreign.type Eina_Iterator
+
+foreign.linker eina:
+  ~lib: libs.eina
+
+eina.fun eina_init() :: int_t
+eina.fun eina_shutdown() :: int_t
+eina.fun eina_error_get() :: int_t
+eina.fun eina_error_set(int_t) :: void_t
+eina.fun eina_error_msg_get(int_t) :: string_t
+eina.fun eina_iterator_next(Eina_Iterator*, ptr_t*) :: eina_bool_t
+eina.fun eina_iterator_free(Eina_Iterator*) :: void_t
+
+fun eina_iterator_to_list(iterator :: Eina_Iterator):
+  def mutable result = []
+  def item = new ptr_t
+  while eina_iterator_next(iterator, item):
+    result := [item[0], & result]
+  eina_iterator_free(iterator)
+  List.reverse(result)
